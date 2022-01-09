@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -74,10 +75,16 @@ func forceUpdateHandler(writer http.ResponseWriter, req *http.Request) {
 
 func main() {
 
-	configFile, err := os.ReadFile("config.json")
+	// Parse config
+  path, err := os.Executable()
+  if err != nil {
+    panic(0)
+  }
+  pathStr := filepath.Dir(path)
+	configFile, err := os.ReadFile(pathStr + "/config.json")
 	if err != nil {
   	fmt.Println("failed to read config, falling back to default")
-		configFile, err = os.ReadFile("config.default.json")
+		configFile, err = os.ReadFile(pathStr + "config.default.json")
 	}
 	if err != nil {
   	fmt.Println("failed to read default config")
@@ -90,6 +97,7 @@ func main() {
   	panic(0)
 	}
 
+	// Start updateLoops
 	for _, v := range config.Modules {
   	switch v {
     	case "music":
@@ -107,11 +115,13 @@ func main() {
   	}
 	}
 
+	// Start forceUpdate handler
 	http.HandleFunc("/forceUpdate", forceUpdateHandler)
 	go func() {
 		http.ListenAndServe(fmt.Sprintf(":%d", config.Port), nil)
 	}()
 
+	// Start main loop
 	for {
 		draw()
 		var now = time.Now()
