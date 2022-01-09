@@ -28,7 +28,7 @@ const (
 )
 
 const (
-	SCRIPTS_PATH = "/home/gasha/scripts/"
+	SCRIPTS_PATH = "/home/jacob/repos/scripts/"
 )
 
 var (

@@ -1,0 +1,4 @@
+{
+  "port": 8080,
+  "modules": ["music", "volume", "power", "time", "wifi", "disk", "borsdata"]
+}
