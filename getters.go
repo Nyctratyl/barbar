@@ -71,7 +71,7 @@ func GetPower() string {
 }
 
 func GetBorsdata() string {
-	body, err := ioutil.ReadFile("/home/gasha/kod/bar_bar/config.json")
+	body, err := ioutil.ReadFile("/home/gasha/kod/bar_bar/borsdata_config.json")
 	if err != nil {
 		return "failed to read config for kpi"
 	}

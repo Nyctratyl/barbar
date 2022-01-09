@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -16,6 +18,10 @@ var (
 	borsdataString string
 )
 
+type Config struct {
+  Port int `json:"port"`
+  Modules []string `json:"modules"`
+}
 
 func updateLoop(getter func() string, target *string, frequency int) {
 	go func() {
@@ -29,8 +35,8 @@ func updateLoop(getter func() string, target *string, frequency int) {
 
 func draw() {
 	now := time.Now()
-	status := []string{
-		"",
+	status := []string{""}
+	statusRaw := []string{
 		borsdataString,
 		volumeString,
 		musicString,
@@ -38,6 +44,11 @@ func draw() {
 		powerString,
 		diskString,
 		now.Local().Format("15:04:05 (02-01-2006)"),
+	}
+	for _, v := range statusRaw {
+  	if v != "" {
+    	status = append(status, v)
+  	}
 	}
 	s := strings.Join(status, fieldSeparator)
 	fmt.Println(s)
@@ -62,16 +73,43 @@ func forceUpdateHandler(writer http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	updateLoop(GetVolume, &volumeString, 60)
-	// updateLoop(GetMusic, &musicString, 60)
-	updateLoop(GetWifi, &wifiString, 10)
-	updateLoop(GetPower, &powerString, 10)
-	updateLoop(GetDisk, &diskString, 30)
-	updateLoop(GetBorsdata, &borsdataString, 600)
+
+	configFile, err := os.ReadFile("config.json")
+	if err != nil {
+  	fmt.Println("failed to read config, falling back to default")
+		configFile, err = os.ReadFile("config.default.json")
+	}
+	if err != nil {
+  	fmt.Println("failed to read default config")
+  	panic(0)
+	}
+	var config Config
+	err = json.Unmarshal(configFile, &config)
+	if err != nil {
+  	fmt.Println("failed to marshal config")
+  	panic(0)
+	}
+
+	for _, v := range config.Modules {
+  	switch v {
+    	case "music":
+				updateLoop(GetMusic, &musicString, 10)
+			case "volume":
+        updateLoop(GetVolume, &volumeString, 60)
+			case "wifi":
+        updateLoop(GetWifi, &wifiString, 10)
+			case "power":
+        updateLoop(GetPower, &powerString, 10)
+			case "disk":
+        updateLoop(GetDisk, &diskString, 30)
+			case "borsdata":
+        updateLoop(GetBorsdata, &borsdataString, 600)
+  	}
+	}
 
 	http.HandleFunc("/forceUpdate", forceUpdateHandler)
 	go func() {
-		http.ListenAndServe(":8080", nil)
+		http.ListenAndServe(fmt.Sprintf(":%d", config.Port), nil)
 	}()
 
 	for {
