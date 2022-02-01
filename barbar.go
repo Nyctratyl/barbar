@@ -17,6 +17,7 @@ var (
 	powerString  string
 	diskString   string
 	borsdataString string
+	brightnessString string
 )
 
 type Config struct {
@@ -39,6 +40,7 @@ func draw() {
 	status := []string{""}
 	statusRaw := []string{
 		borsdataString,
+		brightnessString,
 		volumeString,
 		musicString,
 		wifiString,
@@ -67,6 +69,8 @@ func forceUpdateHandler(writer http.ResponseWriter, req *http.Request) {
 			powerString = GetPower()
 		case "disk":
 			diskString = GetDisk()
+		case "brightness":
+			brightnessString = GetBrightness()
 		}
 		draw()
 	}()
@@ -112,6 +116,8 @@ func main() {
         updateLoop(GetDisk, &diskString, 30)
 			case "borsdata":
         updateLoop(GetBorsdata, &borsdataString, 600)
+			case "brightness":
+        updateLoop(GetBrightness, &brightnessString, 600)
   	}
 	}
 

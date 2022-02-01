@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"io/ioutil"
+	"math"
 	"os"
 	"os/exec"
 	"regexp"
@@ -145,7 +146,7 @@ func GetVolume() string {
 }
 
 func GetDisk() string {
-	cmd := exec.Command(SCRIPTS_PATH + "disk.fish")
+	cmd := exec.Command(SCRIPTS_PATH + "disk.sh")
 	out, _ := cmd.Output()
 	outString := strings.TrimSpace(string(out))
 	return fmt.Sprintf("%s", outString)
@@ -160,6 +161,18 @@ func GetWifi() string {
 	} else {
 		return fmt.Sprintf("WIFI: Disconnected")
 	}
+}
+
+func GetBrightness() string {
+	cmd := exec.Command(SCRIPTS_PATH + "brightness.sh")
+	out, _ := cmd.Output()
+	outString := strings.TrimSpace(string(out))
+	parsed, err := strconv.ParseFloat(outString, 64)
+	if err != nil {
+		return "Brightness: Err"
+	}
+	rounded := math.Round(parsed * 100)
+	return fmt.Sprintf("Brightness: %.0f", rounded)
 }
 
 func GetMusic() string {
